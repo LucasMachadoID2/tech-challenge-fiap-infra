@@ -17,10 +17,11 @@ vpc:
 
 iam:
   withOIDC: false
+  serviceRoleARN: arn:aws:iam::393168611486:role/voclabs
 
 managedNodeGroups:
   - name: ng-default
     instanceType: t3.medium
     desiredCapacity: 2
-    minSize: 1
-    maxSize: 3
+    iam:
+      instanceRoleARN: arn:aws:iam::393168611486:role/voclabs
