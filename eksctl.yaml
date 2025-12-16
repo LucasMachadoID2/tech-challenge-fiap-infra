@@ -4,14 +4,21 @@ kind: ClusterConfig
 metadata:
   name: tech-challenge-eks
   region: us-east-1
+  version: "1.29"
 
 vpc:
-  cidr: "172.31.64.0/20"
+  id: vpc-0431d7e9e2c5992d7
+  subnets:
+    public:
+      us-east-1a:
+        id: subnet-0a2b3b7d2d342c86e
 
-nodeGroups:
+iam:
+  withOIDC: false
+
+managedNodeGroups:
   - name: ng-default
     instanceType: t3.medium
     desiredCapacity: 2
     minSize: 1
     maxSize: 3
-    volumeSize: 20
