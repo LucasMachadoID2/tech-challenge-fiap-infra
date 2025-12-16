@@ -1,6 +1,8 @@
 name: Create EKS Cluster
 
 on:
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -36,4 +38,3 @@ jobs:
       - name: Deploy app and database
         run: |
           kubectl apply -f k8s/order
-
