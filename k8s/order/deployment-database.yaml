@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-order-database-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-order-database-postgres
+  template:
+    metadata:
+      labels:
+        app: app-order-database-postgres
+    spec:
+      containers:
+        - name: app-order-database-postgres
+          image: postgres:17
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: APP_USER_DATABASE
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: APP_PASSWORD_DATABASE

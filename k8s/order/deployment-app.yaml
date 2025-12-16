@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-order
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-order
+  template:
+    metadata:
+      labels:
+        app: app-order
+    spec:
+      containers:
+        - name: app-order
+          image: lucasmachadoid/fiap-tech-chall:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8083
+          env:
+            - name: DATABASE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: DATABASE_NAME
+            - name: APP_USER_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: APP_USER_DATABASE
+            - name: APP_PASSWORD_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: APP_PASSWORD_DATABASE
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+
+

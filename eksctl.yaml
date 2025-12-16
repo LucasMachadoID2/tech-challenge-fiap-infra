@@ -1,0 +1,19 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: tech-challenge-eks
+  region: us-east-1
+
+vpc:
+  cidr: "10.0.0.0/16"
+
+nodeGroups:
+  - name: ng-default
+    instanceType: t3.medium
+    desiredCapacity: 2
+    minSize: 1
+    maxSize: 3
+    volumeSize: 20
+    ssh:
+      allow: false
