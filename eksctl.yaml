@@ -6,7 +6,7 @@ metadata:
   region: us-east-1
 
 vpc:
-  cidr: ${{ vars.AWS_VPC }}
+  cidr: "172.31.64.0/20"
 
 nodeGroups:
   - name: ng-default
