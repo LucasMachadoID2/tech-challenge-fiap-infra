@@ -82,7 +82,7 @@ kind: Service
 metadata:
   name: app-payment-service
 spec:
-  type: NodePort
+  type: LoadBalancer
   ports:
     - name: api
       port: 3333
