@@ -14,38 +14,23 @@ provider "kubectl" {
   load_config_file       = false
 }
 
-# 1. Secret
-resource "kubectl_manifest" "secret" {
+resource "kubectl_manifest" "all_manifests" {
+  for_each   = fileset("${path.module}/k8s/client", "*.yaml")
   depends_on = [aws_eks_node_group.this]
-  yaml_body  = file("${path.module}/k8s/order/secrets.yaml")
+  yaml_body  = file("${path.module}/k8s/client/${each.value}")
 }
-
-# 2. ConfigMap
-resource "kubectl_manifest" "configmap" {
+resource "kubectl_manifest" "all_manifests1" {
+  for_each   = fileset("${path.module}/k8s/order", "*.yaml")
   depends_on = [aws_eks_node_group.this]
-  yaml_body  = file("${path.module}/k8s/order/configmap.yaml")
+  yaml_body  = file("${path.module}/k8s/order/${each.value}")
 }
-
-# 3. Database Deployment
-resource "kubectl_manifest" "database_deployment" {
-  depends_on = [kubectl_manifest.secret, kubectl_manifest.configmap]
-  yaml_body  = file("${path.module}/k8s/order/deployment-database.yaml")
+resource "kubectl_manifest" "all_manifests2" {
+  for_each   = fileset("${path.module}/k8s/payment", "*.yaml")
+  depends_on = [aws_eks_node_group.this]
+  yaml_body  = file("${path.module}/k8s/payment/${each.value}")
 }
-
-# 4. Database Service
-resource "kubectl_manifest" "database_service" {
-  depends_on = [kubectl_manifest.database_deployment]
-  yaml_body  = file("${path.module}/k8s/order/service-database.yaml")
-}
-
-# 5. App Deployment
-resource "kubectl_manifest" "app_deployment" {
-  depends_on = [kubectl_manifest.secret, kubectl_manifest.configmap, kubectl_manifest.database_service]
-  yaml_body  = file("${path.module}/k8s/order/deployment-app.yaml")
-}
-
-# 6. App Service
-resource "kubectl_manifest" "app_service" {
-  depends_on = [kubectl_manifest.app_deployment]
-  yaml_body  = file("${path.module}/k8s/order/service-app.yaml")
+resource "kubectl_manifest" "all_manifests3" {
+  for_each   = fileset("${path.module}/k8s/product", "*.yaml")
+  depends_on = [aws_eks_node_group.this]
+  yaml_body  = file("${path.module}/k8s/product/${each.value}")
 }
