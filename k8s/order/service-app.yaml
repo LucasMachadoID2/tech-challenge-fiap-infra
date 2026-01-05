@@ -2,8 +2,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: app-order-service
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-name: app-order-lb
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: app-order
   ports:
