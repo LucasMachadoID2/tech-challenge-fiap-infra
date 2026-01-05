@@ -1,0 +1,159 @@
+# 1. ConfigMap
+data:
+  PORT: "3333"
+  POSTGRES_HOST: "app-payment-database-service"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "bdtech"
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: app-payment
+  name: api-config
+---
+# 2. Secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-payment-secret
+  labels:
+    app: app-payment
+  # Removido annotation inválida
+  # annotations:
+  #   service.beta.kubernetes.io/aws-load-balancer-name: app-payment-lb
+  
+type: Opaque
+stringData:
+  POSTGRES_USER: "danilo"
+  POSTGRES_PASSWORD: "danilo"
+  MERCADO_PAGO_TOKEN: "TEST-2986934127013785-042221-fd19beb63eb9225c3ae626d6800cb09a-166893008"
+---
+# 3. Banco de Dados - Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-payment-database-service
+  labels:
+    app: app-payment-database-postgree
+spec:
+  ports:
+    - port: 5432
+  selector:
+    app: app-payment-database-postgree
+  type: ClusterIP
+---
+# 4. Banco de Dados - Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-payment-database-postgree
+  labels:
+    app: app-payment-database-postgree
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-payment-database-postgree
+  template:
+    metadata:
+      labels:
+        app: app-payment-database-postgree
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: api-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-payment-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-payment-secret
+                  key: POSTGRES_PASSWORD
+---
+# 5. API - Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-payment-service
+  labels:
+    app: app-payment
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-name: app-payment-lb
+spec:
+  type: LoadBalancer
+  ports:
+    - name: api
+      port: 3333
+      targetPort: 3333
+    - name: prisma-studio
+      port: 5555
+      targetPort: 5555
+  selector:
+    app: app-payment
+---
+# 6. API - Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-payment
+  labels:
+    app: app-payment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-payment
+  template:
+    metadata:
+      labels:
+        app: app-payment
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command: [
+              "sh",
+              "-c",
+              "echo 'Esperando pelo banco de dados (app-payment-database-service) na porta 5432...'; until nc -z app-payment-database-service 5432; do sleep 1; done; echo 'Banco de dados pronto!'",
+            ]
+        - name: run-migration
+          image: danilloagt/fiap-payment:latest
+          imagePullPolicy: Always
+          command: [
+              "sh",
+              "-c",
+              "export DATABASE_URL=\"postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?schema=public\"; echo 'Rodando migration...'; npx prisma db push",
+            ]
+          envFrom:
+            - configMapRef:
+                name: api-config
+            - secretRef:
+                name: app-payment-secret
+      containers:
+        - name: api
+          image: danilloagt/fiap-payment:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3333
+            - containerPort: 5555
+          command: [
+              "sh",
+              "-c",
+              "export DATABASE_URL=\"postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?schema=public\"; npx prisma generate && npx tsx src/server.ts",
+            ]
+          envFrom:
+            - configMapRef:
+                name: api-config
+            - secretRef:
+                name: app-payment-secret

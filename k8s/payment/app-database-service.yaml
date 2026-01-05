@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-payment-database-service
+  labels:
+    app: app-payment-database-postgree
+spec:
+  ports:
+    - port: 5432
+  selector:
+    app: app-payment-database-postgree
+  type: ClusterIP

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-payment-database-postgree
+  labels:
+    app: app-payment-database-postgree
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-payment-database-postgree
+  template:
+    metadata:
+      labels:
+        app: app-payment-database-postgree
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: api-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-payment-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-payment-secret
+                  key: POSTGRES_PASSWORD
