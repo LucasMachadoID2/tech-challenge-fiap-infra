@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  create-eks:
+  terraform-deploy:
     runs-on: ubuntu-latest
 
     steps:
