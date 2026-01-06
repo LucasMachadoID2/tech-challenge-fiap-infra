@@ -26,32 +26,6 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
-      - name: Configure app client credentials
-        run: |
-          export SPRING_DATA_MONGODB_URI=${{ secrets.SPRING_DATA_MONGODB_URI_CLIENT }}
-          envsubst < k8s/client/secret.yaml
-
-      - name: Configure app order credentials
-        run: |
-          export POSTGRES_DB=${{ secrets.POSTGRES_DB }}
-          export APP_USER_DATABASE=${{ secrets.APP_USER_DATABASE }}
-          export APP_PASSWORD_DATABASE=${{ secrets.APP_PASSWORD_DATABASE }}
-          envsubst < k8s/order/secrets.yaml
-
-      - name: Configure app payment credentials
-        run: |
-          export POSTGRES_USER=${{ secrets.POSTGRES_USER }}
-          export POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-          export MERCADO_PAGO_TOKEN=${{ secrets.MERCADO_PAGO_TOKEN }}
-          envsubst < k8s/payment/secret.yaml
-
-      - name: Configure app product credentials
-        run: |
-          export SPRING_DATA_MONGODB_URI=${{ secrets.SPRING_DATA_MONGODB_URI_PRODUCT }}
-          export MONGODB_USERNAME=${{ secrets.MONGODB_USERNAME }}
-          export MONGODB_PASSWORD=${{ secrets.MONGODB_PASSWORD }}
-          envsubst < k8s/product/secret.yaml
-
       - name: Terraform Init
         run: terraform init
 
